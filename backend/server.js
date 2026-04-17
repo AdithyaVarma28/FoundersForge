@@ -1,15 +1,24 @@
 import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
 import cors from "cors";
-
+import mongoose from "mongoose";
 import routes from "./src/routes.js";
+
+dotenv.config();
 
 const app=express();
 
 app.use(cors());
 app.use(express.json());
+
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/foundersforge",{
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(()=> {
+  console.log("Connected to MongoDB");
+}).catch((error)=> {
+  console.error("MongoDB connection error:",error);
+});
 
 app.use("/api",routes);
 
