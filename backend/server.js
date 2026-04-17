@@ -11,14 +11,13 @@ const app=express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/foundersforge",{
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(()=> {
-  console.log("Connected to MongoDB");
-}).catch((error)=> {
-  console.error("MongoDB connection error:",error);
-});
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/foundersforge")
+  .then(()=> {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error)=> {
+    console.error("MongoDB connection error:",error);
+  });
 
 app.use("/api",routes);
 
