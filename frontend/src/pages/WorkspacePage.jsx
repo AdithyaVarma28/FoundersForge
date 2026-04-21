@@ -1,5 +1,5 @@
 import { SectionIntro } from '../components/UiBlocks'
-
+import { useParams } from 'react-router-dom'
 const milestones = [
   'Finalize structured project brief and contributor onboarding',
   'Ship clickable MVP for internal testing',
@@ -21,15 +21,20 @@ const messages = [
 ]
 
 function WorkspacePage() {
+  const { id } = useParams()
+
   return (
     <div className="page">
       <section className="page-hero split-section">
         <div>
           <SectionIntro
             eyebrow="FR7 and FR10"
-            title="Project workspace for collaboration, updates, and shared visibility"
+            title={`Workspace for ${id}`}
             description="The SRS calls for dedicated project chat rooms, message history, and an investment-aware workspace. This page ties those parts together so the collaboration loop feels real."
           />
+          <div className="info-strip">
+            <strong>Project:</strong> {id}
+          </div>
 
           <div className="glass-panel stacked-panel">
             <div className="panel-kicker">Current milestone lane</div>

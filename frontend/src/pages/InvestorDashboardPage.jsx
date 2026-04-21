@@ -1,5 +1,5 @@
 import { SectionIntro, StatGrid } from '../components/UiBlocks'
-
+import { Link } from 'react-router-dom'
 const investorStats = [
   {
     value: '₹14.8L',
@@ -79,6 +79,9 @@ function InvestorDashboardPage() {
               <li key={item}>{item}</li>
             ))}
           </ul>
+          <Link className="feature-link" to="/portfolio">
+            View detailed portfolio →
+          </Link>
           <div className="info-strip">
             <strong>Latest activity</strong>
             <p>

@@ -2,10 +2,9 @@
   min-height: 100vh;
   color: var(--text-primary);
   background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 34%),
-    linear-gradient(180deg, #f8fbff 0%, #f4f7fb 48%, #edf3fb 100%);
-}
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 30%),
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 35%),
+    linear-gradient(180deg, #f8fbff 0%, #eef2ff 50%, #e0f2fe 100%);}
 
 .site-header {
   position: sticky;
@@ -35,11 +34,9 @@
   width: 2.8rem;
   height: 2.8rem;
   border-radius: 1rem;
-  background: linear-gradient(145deg, #2563eb, #38bdf8);
-  color: #f8fbff;
-  font-family: 'Trebuchet MS', 'Gill Sans', sans-serif;
+  background: var(--gradient-main);
+  color: #fff;
   font-weight: 700;
-  letter-spacing: 0.08em;
 }
 
 .brand strong,
@@ -90,7 +87,7 @@
 }
 
 .nav-link-active {
-  background: #0f172a;
+  background: var(--gradient-main);
   color: #fff;
 }
 
@@ -134,6 +131,15 @@
 .hero-copy,
 .stacked-panel,
 .form-card,
+.form-card input,
+.form-card textarea {
+  border: 1px solid var(--border-soft);
+}
+
+.form-card input:focus,
+.form-card textarea:focus {
+  border-color: var(--accent-primary);
+}
 .upload-card,
 .architecture-panel {
   display: grid;
@@ -253,9 +259,25 @@
   background: rgba(56, 189, 248, 0.12);
   color: #0f4c81;
 }
+.status-pill {
+  font-weight: 700;
+}
+
+.status-pill:contains("Accepted") {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.status-pill:contains("Rejected") {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
 
 .glass-panel,
 .feature-card,
+.feature-card .action-row {
+  margin-top: 0.8rem;
+}
 .timeline-card,
 .stat-card {
   border: 1px solid var(--border-soft);
@@ -344,7 +366,10 @@
   align-items: center;
 }
 
-.pill,
+.pill {
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+}
 .pill-button {
   border-radius: 999px;
   padding: 0.6rem 0.9rem;
@@ -385,7 +410,7 @@
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.primary-button,
+
 .secondary-button {
   cursor: pointer;
 }
@@ -397,11 +422,10 @@
 }
 
 .primary-button {
-  background: #0f172a;
+  background: var(--gradient-main);
   color: #fff;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
 }
-
 .secondary-button,
 .ghost-link {
   background: transparent;
@@ -471,9 +495,10 @@ textarea {
 
 input:focus,
 textarea:focus {
-  outline: 2px solid rgba(56, 189, 248, 0.2);
-  border-color: rgba(37, 99, 235, 0.55);
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent-primary);
 }
+
 
 .upload-dropzone,
 .info-strip,
@@ -482,14 +507,15 @@ textarea:focus {
   background: rgba(241, 245, 249, 0.9);
   padding: 1rem;
 }
+.chat-bubble {
+  background: var(--accent-soft);
+}
 
-.upload-dropzone {
-  display: grid;
-  place-items: center;
-  gap: 0.7rem;
-  min-height: 250px;
-  border: 1px dashed rgba(37, 99, 235, 0.22);
-  text-align: center;
+.chat-bubble:nth-child(even) {
+  background: var(--accent-soft-blue);
+}
+.upload-dropzone button {
+  background: var(--gradient-main);
 }
 
 .chat-log {
@@ -520,7 +546,7 @@ textarea:focus {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  background: var(--gradient-main);
 }
 
 .site-footer {
@@ -655,6 +681,12 @@ textarea:focus {
     font-size: 0.96rem;
     line-height: 1.65;
   }
+  .info-strip {
+  margin-top: 1rem;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  font-weight: 600;
+}
 
   .mini-board-head {
     align-items: flex-start;

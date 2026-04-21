@@ -119,9 +119,9 @@ function DiscoverPage() {
               <h3>{result.title}</h3>
               <p>{result.summary}</p>
               <PillList items={result.tags} />
-              <button className="secondary-button full-width-button" disabled={!loggedIn} type="button">
-                {loggedIn ? 'Open project workspace' : 'Login required'}
-              </button>
+              <Link to={`/project/${result.title}`}
+              className="secondary-button full-width-button">View Project
+              </Link>
             </article>
           ))}
         </div>

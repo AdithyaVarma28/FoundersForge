@@ -52,6 +52,11 @@ function FounderDashboardPage() {
           description="This dashboard centers the founder flow from the SRS: submit ideas, receive structured posts, recruit collaborators, and keep funding visibility close to the work."
         />
         <StatGrid stats={founderStats} />
+        <div className="action-row">
+          <Link className="primary-button" to="/project/create">
+            Create New Project
+          </Link>
+        </div>
       </section>
 
       <section className="content-section split-section">
@@ -108,10 +113,12 @@ function FounderDashboardPage() {
 
           <div className="feature-grid">
             {activeProjects.map((project) => (
-              <article className="feature-card" key={project.title}>
+             <article className="feature-card" key={project.title}>
                 <span className="status-pill">{project.phase}</span>
                 <h3>{project.title}</h3>
                 <p>{project.summary}</p>
+                 <Link  className="feature-link"  to={`/project/${project.title}`} >
+                   Manage Project  </Link>
               </article>
             ))}
           </div>

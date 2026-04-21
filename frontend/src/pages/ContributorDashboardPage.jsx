@@ -1,4 +1,5 @@
 import { SectionIntro, StatGrid } from '../components/UiBlocks'
+import { Link } from 'react-router-dom'
 
 const contributorStats = [
   {
@@ -48,6 +49,11 @@ function ContributorDashboardPage() {
           description="The SRS calls for resume parsing, structured skill profiles, semantic discovery, and project applications. This page gives contributors a clear path through each one."
         />
         <StatGrid stats={contributorStats} />
+        <div className="action-row">
+          <Link className="primary-button" to="/applications">
+            View your applications
+          </Link>
+        </div>
       </section>
 
       <section className="content-section split-section">
@@ -79,6 +85,9 @@ function ContributorDashboardPage() {
             <li>Preferred roles: Frontend engineer, product designer, AI integrator</li>
             <li>Availability: 18 hours per week for early-stage teams</li>
           </ul>
+          <Link className="feature-link" to="/profile">
+            View your full profile →
+          </Link>
         </aside>
       </section>
 
@@ -95,9 +104,11 @@ function ContributorDashboardPage() {
               <span className="status-pill">{project.score}</span>
               <h3>{project.title}</h3>
               <p>{project.fit}</p>
-              <button className="secondary-button full-width-button" type="button">
-                Apply to project
-              </button>
+              <Link
+                to={`/project/${project.title}`}
+                className="secondary-button full-width-button">
+                 View & Apply
+              </Link>
             </article>
           ))}
         </div>
