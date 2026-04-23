@@ -9,7 +9,18 @@ function AppShell() {
   const navigation = [
     { label: 'Platform', to: '/' },
     { label: 'Projects', to: '/discover' },
-    ...(currentUser ? [{ label: 'Workspace', to: '/workspace' }] : []),
+
+    ...(currentUser
+      ? [
+          { label: 'Profile', to: '/profile' },
+
+          ...(currentUser.role === 'Investor'
+            ? [{ label: 'Portfolio', to: '/portfolio' }]
+            : []),
+
+          { label: 'Workspace', to: '/workspace/ForgePilot' },
+        ]
+      : []),
   ]
 
   if (currentUser) {

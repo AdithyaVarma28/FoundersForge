@@ -11,7 +11,14 @@ import HomePage from './pages/HomePage'
 import InvestorDashboardPage from './pages/InvestorDashboardPage'
 import NotFoundPage from './pages/NotFoundPage'
 import WorkspacePage from './pages/WorkspacePage'
-
+import ProjectDetailsPage from './pages/ProjectDetailsPage'
+import ProfilePage from './pages/ProfilePage'
+import ApplicationsPage from './pages/ApplicationsPage'
+import CreateProjectPage from './pages/CreateProjectPage'
+import ProjectApplicationsPage from './pages/ProjectApplicationsPage'
+import FundingDetailsPage from './pages/FundingDetailsPage'
+import InvestmentPage from './pages/InvestmentPage'
+import PortfolioPage from './pages/PortfolioPage'
 function App() {
   return (
     <BrowserRouter>
@@ -46,7 +53,7 @@ function App() {
           />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route
-            path="/workspace"
+            path="/workspace/:id"
             element={
               <ProtectedRoute>
                 <WorkspacePage />
@@ -54,7 +61,58 @@ function App() {
             }
           />
           <Route path="*" element={<NotFoundPage />} />
-        </Route>
+      
+        <Route path="/project/:id" element={<ProjectDetailsPage />} />
+        <Route
+          path="/applications"
+          element={
+            <ProtectedRoute allowedRole="Contributor">
+              <ApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/create"
+          element={
+            <ProtectedRoute allowedRole="Founder">
+              <CreateProjectPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/:id/applications"
+          element={
+            <ProtectedRoute allowedRole="Founder">
+              <ProjectApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+            path="/project/:id/funding"
+            element={
+              <ProtectedRoute allowedRole="Investor">
+                <FundingDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+        <Route
+          path="/invest/:projectId"
+          element={
+            <ProtectedRoute allowedRole="Investor">
+              <InvestmentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+            path="/portfolio"
+            element={
+              <ProtectedRoute allowedRole="Investor">
+                <PortfolioPage />
+              </ProtectedRoute>
+            }
+          />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}/>
+      </Route>    
       </Routes>
     </BrowserRouter>
   )
