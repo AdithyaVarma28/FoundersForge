@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "db:init": "node scripts/initDatabase.js",
     "check": "node --check server.js",
     "test": "npm run check"
   },

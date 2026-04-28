@@ -5,9 +5,12 @@ Node.js and Express backend for FoundersForge with MongoDB persistence, JWT auth
 ## Setup
 
 1. Copy `.env.example` to `.env`.
-2. Set `MONGO_URI`, `JWT_SECRET`, and optionally `GROQ_API_KEY`.
+2. Set `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, and optionally `GROQ_API_KEY`.
 3. Install dependencies with `npm install`.
-4. Start the API with `npm start`.
+4. Run `npm run db:init` once to create collections and indexes in MongoDB Atlas.
+5. Start the API with `npm start`.
+
+For MongoDB Atlas, use the SRV connection string format shown in `.env.example` and make sure your current IP address is allowed in Atlas Network Access.
 
 If `GROQ_API_KEY` is missing or the AI service is unavailable, project structuring and resume parsing fall back to local heuristic parsing so demos can continue.
 
