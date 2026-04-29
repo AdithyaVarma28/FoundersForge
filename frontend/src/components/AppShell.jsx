@@ -17,8 +17,6 @@ function AppShell() {
           ...(currentUser.role === 'Investor'
             ? [{ label: 'Portfolio', to: '/portfolio' }]
             : []),
-
-          { label: 'Workspace', to: '/workspace/ForgePilot' },
         ]
       : []),
   ]

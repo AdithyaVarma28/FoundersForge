@@ -1,7 +1,8 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { PillList, SectionIntro } from '../components/UiBlocks'
 import { isAuthenticated } from '../utils/authSession'
+import { apiFetch } from '../utils/api'
 
 const sampleQueries = [
   'AI project needing frontend developers',
@@ -9,40 +10,35 @@ const sampleQueries = [
   'Health platform seeking product designers',
 ]
 
-const resultPool = [
-  {
-    title: 'ForgePilot',
-    summary: 'Founder operations workspace looking for a React-heavy builder and an AI systems generalist.',
-    tags: ['frontend', 'AI', 'collaboration'],
-    score: '0.92',
-  },
-  {
-    title: 'BlockShelf',
-    summary: 'A compliance-friendly blockchain product preparing investor materials and MVP refinement.',
-    tags: ['blockchain', 'investor', 'fintech'],
-    score: '0.89',
-  },
-  {
-    title: 'HealthCanvas',
-    summary: 'Remote care interface seeking designers and frontend contributors with dashboard experience.',
-    tags: ['health', 'design', 'frontend'],
-    score: '0.86',
-  },
-]
-
 function DiscoverPage() {
-  const [query, setQuery] = useState(sampleQueries[0])
-  const deferredQuery = useDeferredValue(query)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
   const loggedIn = isAuthenticated()
 
-  const filteredResults = useMemo(() => {
-    const normalizedQuery = deferredQuery.toLowerCase()
+  useEffect(() => {
+    async function fetchResults() {
+      setLoading(true)
+      try {
+        const endpoint = query.trim() 
+          ? `/projects/search/semantic?q=${encodeURIComponent(query)}` 
+          : '/projects'
+        const data = await apiFetch(endpoint)
+        setResults(data.projects || [])
+      } catch (err) {
+        console.error('Failed to fetch projects', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    // Simple debounce
+    const timeoutId = setTimeout(() => {
+      fetchResults()
+    }, 500)
 
-    return resultPool.filter((result) => {
-      const haystack = `${result.title} ${result.summary} ${result.tags.join(' ')}`.toLowerCase()
-      return haystack.includes(normalizedQuery.split(' ')[0]) || normalizedQuery.length < 5
-    })
-  }, [deferredQuery])
+    return () => clearTimeout(timeoutId)
+  }, [query])
 
   return (
     <div className="page">
@@ -68,11 +64,7 @@ function DiscoverPage() {
                 <button
                   className="pill-button"
                   key={sample}
-                  onClick={() =>
-                    startTransition(() => {
-                      setQuery(sample)
-                    })
-                  }
+                  onClick={() => setQuery(sample)}
                   type="button"
                 >
                   {sample}
@@ -96,8 +88,8 @@ function DiscoverPage() {
       <section className="content-section">
         <SectionIntro
           eyebrow="Search results"
-          title="Projects ranked by similarity"
-          description={`Showing results for "${deferredQuery}"`}
+          title={query ? "Projects ranked by similarity" : "Recent Projects"}
+          description={query ? `Showing results for "${query}"` : "Showing all recent projects"}
         />
         {!loggedIn && (
           <div className="glass-panel gated-banner">
@@ -112,18 +104,25 @@ function DiscoverPage() {
           </div>
         )}
 
+        {loading && <p>Searching...</p>}
+
         <div className="feature-grid">
-          {filteredResults.map((result) => (
-            <article className="feature-card" key={result.title}>
-              <span className="status-pill">Similarity {result.score}</span>
+          {results.map((result) => (
+            <article className="feature-card" key={result.id || result._id}>
+              {result.similarity !== undefined && (
+                <span className="status-pill">Similarity {result.similarity}</span>
+              )}
               <h3>{result.title}</h3>
               <p>{result.summary}</p>
-              <PillList items={result.tags} />
-              <Link to={`/project/${result.title}`}
-              className="secondary-button full-width-button">View Project
+              {result.requiredSkills && (
+                <PillList items={typeof result.requiredSkills === 'string' ? result.requiredSkills.split(',') : result.requiredSkills} />
+              )}
+              <Link to={`/project/${result.id || result._id}`}
+                className="secondary-button full-width-button">View Project
               </Link>
             </article>
           ))}
+          {!loading && results.length === 0 && <p>No projects found.</p>}
         </div>
       </section>
     </div>

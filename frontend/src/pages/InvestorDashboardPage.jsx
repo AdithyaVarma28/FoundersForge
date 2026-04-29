@@ -1,94 +1,125 @@
-import { SectionIntro, StatGrid } from '../components/UiBlocks'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-const investorStats = [
-  {
-    value: '₹14.8L',
-    label: 'Capital committed',
-    detail: 'Across health-tech, creator tooling, and agri-marketplace bets.',
-  },
-  {
-    value: '6',
-    label: 'Projects monitored',
-    detail: 'Each one includes structured progress, traction, and team activity.',
-  },
-  {
-    value: '3',
-    label: 'Watchlist candidates',
-    detail: 'High-fit opportunities discovered through semantic search.',
-  },
-]
-
-const opportunities = [
-  {
-    title: 'ForgePilot',
-    stage: 'Pre-seed',
-    summary: 'Strong founder clarity, visible contributor momentum, and a realistic milestone plan.',
-  },
-  {
-    title: 'CropLynk',
-    stage: 'Seed readiness',
-    summary: 'Operational need is clear and investor updates show measurable progress signals.',
-  },
-]
-
-const portfolio = [
-  'Total investments made',
-  'List of funded projects',
-  'Investment history with transaction dates',
-  'Progress snapshots shared by founders',
-]
+import { SectionIntro, StatGrid } from '../components/UiBlocks'
+import { apiFetch } from '../utils/api'
 
 function InvestorDashboardPage() {
+  const [dashboard, setDashboard] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await apiFetch('/dashboards/investor')
+        setDashboard(data.dashboard)
+      } catch (err) {
+        console.error('Failed to load dashboard', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  if (loading) return <div className="page"><p>Loading dashboard...</p></div>
+  if (!dashboard) return <div className="page"><p>Error loading dashboard.</p></div>
+
+  const investorStats = [
+    {
+      value: `₹${dashboard.totalInvested.toLocaleString()}`,
+      label: 'Capital Deployed',
+      detail: 'Total funds committed across active projects.',
+    },
+    {
+      value: `${dashboard.fundedProjectsCount}`,
+      label: 'Active Investments',
+      detail: 'Number of projects you are currently funding.',
+    },
+    {
+      value: `${dashboard.investments.length}`,
+      label: 'Total Transactions',
+      detail: 'Number of individual investments made.',
+    },
+  ]
+
+  // Extract unique funded projects to show enrolled projects
+  const uniqueProjectsMap = new Map();
+  dashboard.investments.forEach(inv => {
+    if (inv.project && !uniqueProjectsMap.has(inv.project._id)) {
+      uniqueProjectsMap.set(inv.project._id, inv.project);
+    }
+  });
+  const fundedProjects = Array.from(uniqueProjectsMap.values());
+
   return (
     <div className="page">
       <section className="page-hero">
         <SectionIntro
-          eyebrow="FR6, FR9, FR10"
-          title="Investor desk for discovery, diligence, and transparent portfolio tracking"
-          description="This experience reflects the investor requirements from the SRS: explore promising projects, review structured details, fund them, and monitor outcomes without losing context."
+          eyebrow="Investor Dashboard"
+          title="Track your portfolio and discover new opportunities"
+          description="Monitor your active investments and collaborate with founders in the workspace."
         />
         <StatGrid stats={investorStats} />
+        <div className="action-row">
+          <Link className="primary-button" to="/discover">
+            Discover Projects
+          </Link>
+          <Link className="secondary-button" to="/portfolio">
+            View Full Portfolio
+          </Link>
+        </div>
+      </section>
+
+      <section className="content-section">
+        <SectionIntro
+          eyebrow="Enrolled Projects"
+          title="Projects you have funded"
+          description="Jump into the workspace and review milestones."
+        />
+
+        <div className="feature-grid feature-grid-three">
+          {fundedProjects.map((project) => (
+            <article className="feature-card" key={project._id}>
+              <span className="status-pill">{project.status || 'Funded'}</span>
+              <h3>{project.title}</h3>
+              <p>{project.summary}</p>
+              <Link
+                to={`/workspace/${project._id}`}
+                className="secondary-button full-width-button">
+                 Open Workspace
+              </Link>
+            </article>
+          ))}
+          {fundedProjects.length === 0 && <p>You haven't funded any projects yet.</p>}
+        </div>
       </section>
 
       <section className="content-section split-section">
         <div>
           <SectionIntro
-            eyebrow="Recommended projects"
-            title="Structured opportunities surfaced through the discovery engine"
-            description="Each opportunity combines semantic relevance with founder updates and team readiness signals."
+            eyebrow="Recent Transactions"
+            title="Your latest investment commitments"
+            description="A ledger of your recent platform activity."
           />
 
           <div className="feature-grid">
-            {opportunities.map((opportunity) => (
-              <article className="feature-card" key={opportunity.title}>
-                <span className="status-pill">{opportunity.stage}</span>
-                <h3>{opportunity.title}</h3>
-                <p>{opportunity.summary}</p>
-                <button className="primary-button full-width-button" type="button">
-                  Review funding details
-                </button>
+             {dashboard.investments.slice(0, 5).map((investment) => (
+              <article className="feature-card" key={investment._id}>
+                <span className="status-pill">₹{investment.amount.toLocaleString()}</span>
+                <h3>{investment.project?.title}</h3>
+                <p>Invested on {new Date(investment.transactionDate).toLocaleDateString()}</p>
               </article>
             ))}
+            {dashboard.investments.length === 0 && <p>No transactions found.</p>}
           </div>
         </div>
 
         <aside className="glass-panel stacked-panel">
-          <div className="panel-kicker">Investor dashboard contents</div>
+          <div className="panel-kicker">Platform Insights</div>
           <ul className="stack-list">
-            {portfolio.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            <li>We matched 15 new startups matching your thesis this week.</li>
+            <li>3 of your portfolio companies hit new milestones.</li>
           </ul>
-          <Link className="feature-link" to="/portfolio">
-            View detailed portfolio →
-          </Link>
-          <div className="info-strip">
-            <strong>Latest activity</strong>
-            <p>
-              ForgePilot posted a milestone update, contributor applications increased by
-              18%, and the founder opened the next funding tranche.
-            </p>
-          </div>
         </aside>
       </section>
     </div>

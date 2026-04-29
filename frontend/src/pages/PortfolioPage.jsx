@@ -1,28 +1,32 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SectionIntro, PillList } from '../components/UiBlocks'
-
-// Mock investment data
-const portfolio = [
-  {
-    project: 'ForgePilot',
-    amount: '₹50,000',
-    status: 'Active',
-    progress: '62%',
-    tags: ['AI', 'SaaS'],
-  },
-  {
-    project: 'CropLynk',
-    amount: '₹30,000',
-    status: 'Growing',
-    progress: '45%',
-    tags: ['AgriTech', 'Marketplace'],
-  },
-]
+import { apiFetch } from '../utils/api'
 
 function PortfolioPage() {
+  const [investments, setInvestments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function loadPortfolio() {
+      try {
+        const data = await apiFetch('/investments/me')
+        setInvestments(data.investments || [])
+      } catch (err) {
+        setError(err.message || 'Failed to load portfolio')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadPortfolio()
+  }, [])
+
+  if (loading) return <div className="page"><p>Loading portfolio...</p></div>
+  if (error) return <div className="page"><p className="form-error">{error}</p></div>
+
   return (
     <div className="page">
-      {/* HERO */}
       <section className="page-hero">
         <SectionIntro
           eyebrow="Your portfolio"
@@ -31,36 +35,30 @@ function PortfolioPage() {
         />
       </section>
 
-      {/* PORTFOLIO LIST */}
       <section className="content-section">
         <div className="feature-grid">
-          {portfolio.map((item) => (
-            <article className="feature-card" key={item.project}>
-              <span className="status-pill">{item.status}</span>
+          {investments.map((item) => (
+            <article className="feature-card" key={item._id}>
+              <span className="status-pill">{item.project?.status || 'Active'}</span>
 
-              <h3>{item.project}</h3>
-              <p><strong>Invested:</strong> {item.amount}</p>
+              <h3>{item.project?.title || 'Unknown Project'}</h3>
+              <p><strong>Invested:</strong> ₹{item.amount?.toLocaleString()}</p>
 
-              <PillList items={item.tags} />
-
-              {/* Progress */}
-              <div className="meter-bar">
-                <span style={{ width: item.progress }} />
-              </div>
-
-              <p>Progress: {item.progress}</p>
+              {item.project?.requiredSkills && (
+                <PillList items={typeof item.project.requiredSkills === 'string' ? item.project.requiredSkills.split(',') : item.project.requiredSkills} />
+              )}
 
               {/* ACTIONS */}
-              <div className="action-row">
+              <div className="action-row" style={{ marginTop: '1rem' }}>
                 <Link
-                  to={`/project/${item.project}`}
+                  to={`/project/${item.project?._id}`}
                   className="secondary-button"
                 >
                   View Project
                 </Link>
 
                 <Link
-                  to={`/workspace/${item.project}`}
+                  to={`/workspace/${item.project?._id}`}
                   className="secondary-button"
                 >
                   Open Workspace
@@ -68,6 +66,7 @@ function PortfolioPage() {
               </div>
             </article>
           ))}
+          {investments.length === 0 && <p>You have no active investments.</p>}
         </div>
       </section>
     </div>

@@ -1,100 +1,64 @@
 import { saveStoredRole } from './roleRouting'
+import { apiFetch, setAuthToken } from './api'
 
-const USERS_STORAGE_KEY = 'foundersforge-users'
-const SESSION_STORAGE_KEY = 'foundersforge-session'
+const USER_STORAGE_KEY = 'foundersforge-current-user'
 
 function canUseStorage() {
   return typeof window !== 'undefined'
 }
 
-function readUsers() {
-  if (!canUseStorage()) {
-    return {}
-  }
+function formatUser(user) {
+  if (!user || !user.role) return user;
+  const capitalizedRole = user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase();
+  return { ...user, role: capitalizedRole };
+}
 
-  const raw = window.localStorage.getItem(USERS_STORAGE_KEY)
-
-  if (!raw) {
-    return {}
-  }
-
+export async function registerUser({ name, email, password, role }) {
   try {
-    const parsed = JSON.parse(raw)
-    return typeof parsed === 'object' && parsed !== null ? parsed : {}
-  } catch {
-    return {}
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ fullName: name, email, password, role: role.toLowerCase() }),
+    })
+    
+    const user = formatUser(data.user)
+    setAuthToken(data.token)
+    if (canUseStorage()) {
+      window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    }
+    saveStoredRole(user.role)
+    return { ok: true, user }
+  } catch (error) {
+    return { ok: false, message: error.message }
   }
 }
 
-function writeUsers(users) {
-  if (!canUseStorage()) {
-    return
+export async function loginUser({ email, password }) {
+  try {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    
+    const user = formatUser(data.user)
+    setAuthToken(data.token)
+    if (canUseStorage()) {
+      window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    }
+    saveStoredRole(user.role)
+    return { ok: true, user }
+  } catch (error) {
+    return { ok: false, message: error.message }
   }
-
-  window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users))
-}
-
-function setSession(email) {
-  if (!canUseStorage()) {
-    return
-  }
-
-  window.localStorage.setItem(SESSION_STORAGE_KEY, email)
-}
-
-function getSessionEmail() {
-  if (!canUseStorage()) {
-    return null
-  }
-
-  return window.localStorage.getItem(SESSION_STORAGE_KEY)
-}
-
-export function registerUser({ name, email, password, role }) {
-  const normalizedEmail = email.trim().toLowerCase()
-  const users = readUsers()
-
-  if (users[normalizedEmail]) {
-    return { ok: false, message: 'An account already exists for this email.' }
-  }
-
-  users[normalizedEmail] = {
-    name: name.trim(),
-    email: normalizedEmail,
-    password,
-    role,
-  }
-
-  writeUsers(users)
-  setSession(normalizedEmail)
-  saveStoredRole(role)
-
-  return { ok: true, user: users[normalizedEmail] }
-}
-
-export function loginUser({ email, password }) {
-  const normalizedEmail = email.trim().toLowerCase()
-  const users = readUsers()
-  const user = users[normalizedEmail]
-
-  if (!user || user.password !== password) {
-    return { ok: false, message: 'Invalid email or password.' }
-  }
-
-  setSession(normalizedEmail)
-  saveStoredRole(user.role)
-  return { ok: true, user }
 }
 
 export function getCurrentUser() {
-  const sessionEmail = getSessionEmail()
-
-  if (!sessionEmail) {
+  if (!canUseStorage()) return null
+  try {
+    const raw = window.localStorage.getItem(USER_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
     return null
   }
-
-  const users = readUsers()
-  return users[sessionEmail] ?? null
 }
 
 export function isAuthenticated() {
@@ -102,9 +66,7 @@ export function isAuthenticated() {
 }
 
 export function logoutUser() {
-  if (!canUseStorage()) {
-    return
-  }
-
-  window.localStorage.removeItem(SESSION_STORAGE_KEY)
+  if (!canUseStorage()) return
+  setAuthToken(null)
+  window.localStorage.removeItem(USER_STORAGE_KEY)
 }

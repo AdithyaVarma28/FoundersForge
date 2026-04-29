@@ -39,7 +39,7 @@ function AuthPage() {
     setFormData((current) => ({ ...current, [key]: value }))
   }
 
-  function handleAuthSubmit(event) {
+  async function handleAuthSubmit(event) {
     event.preventDefault()
     setErrorMessage('')
 
@@ -55,13 +55,13 @@ function AuthPage() {
 
     const result =
       mode === 'register'
-        ? registerUser({
+        ? await registerUser({
             name: formData.name,
             email: formData.email,
             password: formData.password,
             role: selectedRole,
           })
-        : loginUser({
+        : await loginUser({
             email: formData.email,
             password: formData.password,
           })
