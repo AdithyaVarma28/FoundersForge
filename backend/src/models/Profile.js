@@ -60,6 +60,7 @@ const profileSchema = new mongoose.Schema(
           year: String,
         },
       ],
+      phone: { type: String, trim: true },
       resume: { type: mongoose.Schema.Types.ObjectId, ref: "Resume" },
     },
     investor: {

@@ -66,23 +66,9 @@ export async function listProjectApplications(req, res) {
 
   const applications = await Application.find({ project: project._id })
     .populate("contributor", "fullName email role")
-    .sort({ createdAt: -1 })
-    .lean();
+    .sort({ createdAt: -1 });
 
-  const profilePromises = applications.map(app => 
-    import("../models/Profile.js").then(({ default: Profile }) => 
-      Profile.findOne({ user: app.contributor._id }).lean()
-    )
-  );
-  
-  const profiles = await Promise.all(profilePromises);
-
-  const applicationsWithProfiles = applications.map((app, index) => ({
-    ...app,
-    contributorProfile: profiles[index] || null
-  }));
-
-  res.json({ success: true, count: applications.length, applications: applicationsWithProfiles });
+  res.json({ success: true, count: applications.length, applications });
 }
 
 export async function reviewApplication(req, res) {

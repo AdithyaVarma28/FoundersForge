@@ -1,20 +1,26 @@
 import express from "express";
-import { queryGroq } from "./groq_handler.js";
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
+import investmentRoutes from "./routes/investmentRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
-const router=express.Router();
+const router = express.Router();
 
-router.post("/chat",async (req,res)=> {
-  try {
-    const { message }=req.body;
-
-    const result=await queryGroq(message);
-
-    res.json({success:true,reply:result,});
-  } 
-  catch(error) {
-    console.error("Route Error:",error);
-    res.status(500).json({ error: "Groq failed" });
-  }
-});
+router.use("/", aiRoutes);
+router.use("/auth", authRoutes);
+router.use("/profiles", profileRoutes);
+router.use("/projects", projectRoutes);
+router.use("/resumes", resumeRoutes);
+router.use("/applications", applicationRoutes);
+router.use("/investments", investmentRoutes);
+router.use("/messages", messageRoutes);
+router.use("/dashboards", dashboardRoutes);
+router.use("/admin", adminRoutes);
 
 export default router;
