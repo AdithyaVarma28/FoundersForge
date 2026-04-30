@@ -30,12 +30,13 @@ export async function uploadContributorResume(req, res) {
 
   const updateSet = {
     "contributor.resume": resume._id,
-    "contributor.extractedSkills": parsed.skills,
-    "contributor.technologies": parsed.technologies,
-    "contributor.experience": parsed.experience,
-    "contributor.education": parsed.education,
-    "contributor.certifications": parsed.certifications || [],
   };
+
+  if (parsed.skills && parsed.skills.length > 0) updateSet["contributor.extractedSkills"] = parsed.skills;
+  if (parsed.technologies && parsed.technologies.length > 0) updateSet["contributor.technologies"] = parsed.technologies;
+  if (parsed.experience && parsed.experience.length > 0) updateSet["contributor.experience"] = parsed.experience;
+  if (parsed.education && parsed.education.length > 0) updateSet["contributor.education"] = parsed.education;
+  if (parsed.certifications && parsed.certifications.length > 0) updateSet["contributor.certifications"] = parsed.certifications;
 
   if (parsed.personalDetails) {
     if (parsed.personalDetails.bio) updateSet.bio = parsed.personalDetails.bio;

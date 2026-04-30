@@ -1,16 +1,21 @@
 import { queryGroq } from "../groq_handler.js";
 
 function parseJsonObject(value) {
-  const firstBrace = value.indexOf("{");
-  const lastBrace = value.lastIndexOf("}");
+  // Try to find markdown json block first
+  const match = value.match(/```json\s*([\s\S]*?)\s*```/);
+  const jsonString = match ? match[1] : value;
+  
+  const firstBrace = jsonString.indexOf("{");
+  const lastBrace = jsonString.lastIndexOf("}");
 
   if (firstBrace === -1 || lastBrace === -1) {
     return null;
   }
 
   try {
-    return JSON.parse(value.slice(firstBrace, lastBrace + 1));
-  } catch {
+    return JSON.parse(jsonString.slice(firstBrace, lastBrace + 1));
+  } catch (e) {
+    console.error("Failed to parse JSON", e);
     return null;
   }
 }
@@ -26,7 +31,8 @@ function localProjectStructure(rawIdea) {
     .filter(Boolean);
 
   const title = sentences[0]?.slice(0, 80) || "Untitled FoundersForge Project";
-  const skillMatches = rawIdea.match(/\b(react|node|express|mongodb|python|ai|ml|machine learning|nlp|design|figma|flutter|android|ios|aws|devops|blockchain|data|analytics)\b/gi) || [];
+  const skillRegex = /\b(react|node|express|mongodb|python|ai|ml|machine learning|nlp|design|figma|flutter|android|ios|aws|devops|blockchain|data|analytics|sql|postgresql|docker|kubernetes|java|c\+\+|c#|typescript|javascript|vue|angular|svelte|nextjs|nestjs|graphql)\b/gi;
+  const skillMatches = rawIdea.match(skillRegex) || [];
 
   return {
     title,
@@ -59,23 +65,29 @@ function normalizeProjectStructure(rawIdea, structured, provider, originalRespon
 
 export async function structureProjectIdea(rawIdea) {
   const prompt = [
-    "You are the FoundersForge backend LLM service.",
-    "Convert the raw founder idea into strict JSON with keys: title, summary, problem, solution, objectives, requiredSkills, rolesNeeded.",
-    "Use arrays for objectives, requiredSkills, and rolesNeeded. Return only JSON.",
+    "You are the FoundersForge backend LLM service. Your ONLY job is to output a single, valid JSON object without any conversational text or formatting outside of the JSON block.",
+    "Convert the raw founder idea into strict JSON with these exact keys: title, summary, problem, solution, objectives, requiredSkills, rolesNeeded.",
+    "Rules:",
+    "- objectives, requiredSkills, and rolesNeeded MUST be arrays of strings.",
+    "- If skills are not explicitly mentioned, intelligently infer the required skills (e.g. if they mention an iOS app, include 'Swift' or 'React Native').",
+    "- Output ONLY raw JSON.",
     `Raw idea: ${rawIdea}`,
   ].join("\n");
 
   try {
     const response = await queryGroq(prompt);
     const parsed = parseJsonObject(response);
+    if (!parsed) throw new Error("Invalid JSON");
     return normalizeProjectStructure(rawIdea, parsed, "groq", response);
-  } catch {
+  } catch (error) {
+    console.error("LLM Project Structuring Failed:", error);
     return normalizeProjectStructure(rawIdea, null, "local", null);
   }
 }
 
 function localResumeParse(text) {
-  const skillMatches = text.match(/\b(javascript|typescript|react|node|express|mongodb|sql|python|java|c\+\+|html|css|figma|aws|docker|kubernetes|git|machine learning|nlp|data analysis|flutter)\b/gi) || [];
+  const skillRegex = /\b(javascript|typescript|react|node|express|mongodb|sql|postgresql|python|java|c\+\+|c#|html|css|figma|aws|azure|gcp|docker|kubernetes|git|machine learning|nlp|data analysis|flutter|react native|swift|kotlin|go|rust|ruby)\b/gi;
+  const skillMatches = text.match(skillRegex) || [];
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -85,15 +97,15 @@ function localResumeParse(text) {
     skills: unique(skillMatches),
     technologies: unique(skillMatches),
     experience: lines
-      .filter((line) => /\b(intern|developer|engineer|designer|analyst|experience)\b/i.test(line))
+      .filter((line) => /\b(intern|developer|engineer|designer|analyst|experience|manager|lead)\b/i.test(line))
       .slice(0, 5)
-      .map((line) => ({ title: line, company: "", duration: "", summary: line })),
+      .map((line) => ({ title: line, company: "Extracted Experience", duration: "", summary: line })),
     education: lines
-      .filter((line) => /\b(university|college|b\.?tech|degree|school|education)\b/i.test(line))
+      .filter((line) => /\b(university|college|b\.?tech|degree|school|education|bachelor|master|phd)\b/i.test(line))
       .slice(0, 5)
-      .map((line) => ({ institution: line, degree: "", year: "" })),
+      .map((line) => ({ institution: line, degree: "Extracted Degree", year: "" })),
     certifications: [],
-    personalDetails: { bio: "", location: "", phone: "", github: "", linkedin: "" }
+    personalDetails: { bio: "Extracted via regex fallback.", location: "", phone: "", github: "", linkedin: "" }
   };
 }
 
@@ -101,10 +113,10 @@ function normalizeResumeParse(text, parsed) {
   const fallback = localResumeParse(text);
 
   return {
-    skills: unique(parsed?.skills || fallback.skills),
-    technologies: unique(parsed?.technologies || parsed?.tools || fallback.technologies),
-    experience: Array.isArray(parsed?.experience) ? parsed.experience : fallback.experience,
-    education: Array.isArray(parsed?.education) ? parsed.education : fallback.education,
+    skills: unique(parsed?.skills?.length ? parsed.skills : fallback.skills),
+    technologies: unique(parsed?.technologies?.length ? parsed.technologies : parsed?.tools?.length ? parsed.tools : fallback.technologies),
+    experience: Array.isArray(parsed?.experience) && parsed.experience.length ? parsed.experience : fallback.experience,
+    education: Array.isArray(parsed?.education) && parsed.education.length ? parsed.education : fallback.education,
     certifications: Array.isArray(parsed?.certifications) ? parsed.certifications : fallback.certifications,
     personalDetails: parsed?.personalDetails || fallback.personalDetails
   };
@@ -112,18 +124,25 @@ function normalizeResumeParse(text, parsed) {
 
 export async function parseResumeText(text) {
   const prompt = [
-    "You are the FoundersForge resume parser.",
-    "Extract contributor resume data as strict JSON with keys: skills, technologies, experience, education, certifications, personalDetails.",
-    "experience items should include title, company, duration, summary. education items should include institution, degree, year. certifications items should include name, issuer, year.",
-    "personalDetails should be an object containing keys: bio (a 2 sentence summary of the person), location, phone, github, linkedin.",
-    "Return only JSON.",
-    `Resume text: ${text.slice(0, 12000)}`,
+    "You are the FoundersForge AI resume parser. Your ONLY job is to output a single, valid JSON object without any conversational text or formatting outside of the JSON block.",
+    "Extract the contributor resume data as strict JSON with exactly these keys: skills, technologies, experience, education, certifications, personalDetails.",
+    "Rules:",
+    "- 'skills' and 'technologies' MUST be arrays of strings. Extract as many explicit and implicit skills/technologies as possible from the text.",
+    "- 'experience' items MUST include: title, company, duration, summary.",
+    "- 'education' items MUST include: institution, degree, year.",
+    "- 'certifications' items MUST include: name, issuer, year.",
+    "- 'personalDetails' MUST be an object with keys: bio (a 2 sentence summary of the person), location, phone, github, linkedin.",
+    "- Output ONLY raw JSON.",
+    `Resume text: ${text.slice(0, 15000)}`,
   ].join("\n");
 
   try {
     const response = await queryGroq(prompt);
-    return normalizeResumeParse(text, parseJsonObject(response));
-  } catch {
+    const parsed = parseJsonObject(response);
+    if (!parsed || !parsed.skills) throw new Error("Invalid Resume JSON");
+    return normalizeResumeParse(text, parsed);
+  } catch (error) {
+    console.error("LLM Resume Parsing Failed:", error);
     return normalizeResumeParse(text, null);
   }
 }
