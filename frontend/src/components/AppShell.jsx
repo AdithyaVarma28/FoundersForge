@@ -63,7 +63,7 @@ function AppShell() {
             Explore matches
           </NavLink>
           {currentUser ? (
-            <button className="primary-button" onClick={handleLogout} type="button">
+            <button className="logout-button" onClick={handleLogout} type="button">
               Log out
             </button>
           ) : (
