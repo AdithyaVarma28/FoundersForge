@@ -1,5 +1,6 @@
 import Application from "../models/Application.js";
 import Project from "../models/Project.js";
+import Profile from "../models/Profile.js";
 import ChatRoom from "../models/ChatRoom.js";
 import { APPLICATION_STATUSES, MEMBERSHIP_ROLES } from "../constants/enums.js";
 import { ApiError } from "../utils/apiError.js";
@@ -68,7 +69,18 @@ export async function listProjectApplications(req, res) {
     .populate("contributor", "fullName email role")
     .sort({ createdAt: -1 });
 
-  res.json({ success: true, count: applications.length, applications });
+  // Fetch contributor profiles so the founder can view parsed resume details
+  const contributorIds = applications.map((a) => a.contributor?._id).filter(Boolean);
+  const profiles = await Profile.find({ user: { $in: contributorIds } }).lean();
+  const profileMap = new Map(profiles.map((p) => [String(p.user), p]));
+
+  const enriched = applications.map((app) => {
+    const obj = app.toObject();
+    obj.contributorProfile = profileMap.get(String(app.contributor?._id)) || null;
+    return obj;
+  });
+
+  res.json({ success: true, count: enriched.length, applications: enriched });
 }
 
 export async function reviewApplication(req, res) {

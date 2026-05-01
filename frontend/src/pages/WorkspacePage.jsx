@@ -51,7 +51,11 @@ function WorkspacePage() {
         })
 
         socket.on('project:message', (newMessage) => {
-          setMessages((prev) => [...prev, newMessage])
+          setMessages((prev) => {
+            // Prevent duplicate — the sender already sees the message via the broadcast
+            if (prev.some((m) => m._id === newMessage._id)) return prev
+            return [...prev, newMessage]
+          })
         })
 
       } catch (err) {
