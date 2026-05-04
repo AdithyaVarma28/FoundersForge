@@ -81,7 +81,7 @@ function AuthPage() {
       <section className="page-hero split-section">
         <div>
           <SectionIntro
-            eyebrow="FR1, FR2, FR3"
+            eyebrow="FoundersForge Authentication"
             title="Authentication designed around secure onboarding and role clarity"
             description="The SRS emphasizes registration, login, and role-specific access. This page gives those flows a confident entry point instead of leaving them as plain starter forms."
           />
