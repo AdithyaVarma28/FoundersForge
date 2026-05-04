@@ -142,6 +142,10 @@
 .form-card input,
 .form-card textarea {
   border: 1px solid var(--border-soft);
+  border-radius:10px ;
+  padding:10px ;
+  background:radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 42%);
+  
 }
 
 .form-card input:focus,
