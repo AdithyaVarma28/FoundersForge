@@ -80,10 +80,9 @@ function AppShell() {
 
       <footer className="site-footer">
         <div>
-          <strong>Built from the SRS scope</strong>
+          <strong>Disclaimer!!</strong>
           <p>
-            Founder idea submission, resume parsing, semantic discovery, project
-            collaboration, and investment tracking.
+          Engagement with this platform and its public forums is entirely at your own risk; because we do not track users or verify identities, you are responsible for your own safety and the security of your ideas.
           </p>
         </div>
         <div className="footer-links">
